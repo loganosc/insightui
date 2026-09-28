@@ -3,7 +3,7 @@ import TopBar from './components/TopBar';
 import Canvas from './components/Canvas';
 import Inspector from './components/Inspector';
 import BottomBar from './components/BottomBar';
-import { analyzeInterface, askFollowUpQuestion } from './utils/ollamaApi';
+import { analyzeInterface, askFollowUpQuestion, DEFAULT_MODEL } from './utils/ollamaApi';
 import { estimateElementCoordinates } from './utils/coordinates';
 import './App.css';
 
@@ -109,7 +109,7 @@ function App() {
   const [domContent, setDomContent] = useState('');
   const [description, setDescription] = useState('');
   const [critiqueData, setCritiqueData] = useState({});
-  const [selectedModel, setSelectedModel] = useState('gemma4:4b');
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const [theme, setTheme] = useState('light');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [zoom, setZoom] = useState(1);

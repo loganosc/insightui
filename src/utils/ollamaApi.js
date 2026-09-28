@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const OLLAMA_API_BASE = 'http://localhost:11434';
+const OLLAMA_API_BASE = (import.meta.env.VITE_OLLAMA_API_URL || 'http://localhost:11434').replace(/\/+$/, '');
+export const DEFAULT_MODEL = import.meta.env.VITE_DEFAULT_MODEL || 'gemma4:4b';
 const MAX_PROMPT_SECTION_CHARS = 20000;
 const CATEGORIES = ['usability', 'accessibility', 'visual_hierarchy', 'interaction_design', 'consistency'];
 const CATEGORY_KEYWORDS = {
@@ -26,7 +27,7 @@ const getOllamaErrorMessage = (error) => {
 
 export const analyzeInterface = async (
   { screenshot, html, css, dom, description },
-  model = 'gemma4:4b'
+  model = DEFAULT_MODEL
 ) => {
   const clamp = (value) => {
     if (!value) return '';
@@ -137,7 +138,7 @@ Analyze the provided interface inputs and provide feedback ONLY as a valid JSON 
 export const askFollowUpQuestion = async (
   { screenshot, html, css, dom, description },
   { category, issue, element, fix, severity, message },
-  model = 'gemma4:4b'
+  model = DEFAULT_MODEL
 ) => {
   const clamp = (value) => {
     if (!value) return '';

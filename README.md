@@ -53,15 +53,39 @@ A designer-first web interface for getting **structured, categorized UX critique
 
 ## Setup & Installation
 
-### 1. Start Ollama
+**Quick checklist**
+
+1. Install Node.js (v16+) and Ollama
+2. Clone the repo and `cd` into it
+3. Start Ollama (`ollama serve`)
+4. Pull a model (`ollama pull gemma4:4b`)
+5. Install dependencies (`npm install`)
+6. Create `.env.local` from `.env.example` (optional)
+7. Start the app (`npm run dev`) and open `http://localhost:3000`
+
+Each step in detail:
+
+### 1. Install prerequisites
+
+- **Node.js** v16 or newer: [nodejs.org](https://nodejs.org)
+- **Ollama**: [ollama.com](https://ollama.com)
+
+### 2. Clone the repository
+
+```bash
+git clone https://github.com/loganosc/insightui.git
+cd insightui
+```
+
+### 3. Start Ollama
 
 ```bash
 ollama serve
 ```
 
-The Ollama API will be available at `http://localhost:11434`.
+The Ollama API will be available at `http://localhost:11434`. (If you use the Ollama desktop app, it may already be running.)
 
-### 2. Pull a model
+### 4. Pull a model
 
 In a new terminal:
 
@@ -71,13 +95,38 @@ ollama pull gemma4:4b    # the app's default
 
 Any other model you've pulled (e.g. `qwen3-vl`, `llama3`, `mistral`) will also appear in the model picker.
 
-### 3. Install dependencies
+### 5. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 4. Start the development server
+### 6. Create `.env.local` (optional)
+
+The defaults work if Ollama is on `localhost:11434` and you're using `gemma4:4b`. To change either one, copy the example file:
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local`:
+
+```bash
+# Where your Ollama server is running
+VITE_OLLAMA_API_URL=http://localhost:11434
+
+# Model selected when the app loads (must be pulled with `ollama pull`)
+VITE_DEFAULT_MODEL=gemma4:4b
+```
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VITE_OLLAMA_API_URL` | `http://localhost:11434` | Base URL of your Ollama server |
+| `VITE_DEFAULT_MODEL` | `gemma4:4b` | Model selected on page load |
+
+`.env.local` is git-ignored, so your settings stay on your machine. Vite only reads these values at startup, so **restart `npm run dev` after changing them**.
+
+### 7. Start the development server
 
 ```bash
 npm run dev
@@ -121,7 +170,7 @@ After an analysis, click **📥 Export as PDF** in the bottom bar to download a 
 
 ### Ollama Connection
 
-The app calls Ollama's `/api/generate` endpoint at `http://localhost:11434` (hardcoded in [src/utils/ollamaApi.js](src/utils/ollamaApi.js)):
+The app calls Ollama's `/api/generate` endpoint at `VITE_OLLAMA_API_URL` (default `http://localhost:11434`; see [src/utils/ollamaApi.js](src/utils/ollamaApi.js)):
 
 ```javascript
 POST http://localhost:11434/api/generate
@@ -188,6 +237,7 @@ insightui/
 │   ├── main.jsx                # Entry point
 │   └── App.css
 ├── chrome-extension/           # DOM scraper extension (Manifest V3)
+├── .env.example                # Template for .env.local
 ├── index.html
 ├── vite.config.js
 └── package.json
@@ -204,7 +254,8 @@ insightui/
 
 ### "Analysis failed: ... Network Error"
 - Make sure Ollama is running: `ollama serve`
-- Check that `http://localhost:11434` is reachable
+- Check that `http://localhost:11434` (or your `VITE_OLLAMA_API_URL`) is reachable
+- If you changed `.env.local`, restart `npm run dev`
 
 ### Model dropdown says "No models available"
 - Pull a model: `ollama pull gemma4:4b`
@@ -222,7 +273,6 @@ insightui/
 
 🔮 **Ideas**
 - ML-based element detection for precise highlighting
-- Configurable Ollama URL / default model via environment variables
 - Multi-screenshot comparison
 - Design system integration
 - Custom prompt templates
