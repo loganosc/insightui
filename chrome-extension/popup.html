@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>InsightUI Scraper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <h1>InsightUI Scraper</h1>
+
+      <label class="toggle" for="autoCapture">
+        <input id="autoCapture" type="checkbox" />
+        <span>Auto-capture on page load</span>
+      </label>
+
+      <div class="actions">
+        <button id="scrapeNow" type="button">Scrape now</button>
+        <button id="downloadJson" type="button" class="secondary">Download JSON</button>
+      </div>
+
+      <div class="open-row">
+        <label for="insightUiUrl">InsightUI URL</label>
+        <input id="insightUiUrl" type="text" placeholder="http://localhost:3000" />
+        <button id="openInsightUi" type="button" class="analyze-button">Open InsightUI + Prefill</button>
+      </div>
+
+      <p id="status" class="status">Ready.</p>
+      <p id="meta" class="meta"></p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

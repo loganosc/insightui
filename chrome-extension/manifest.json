@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "InsightUI DOM Scraper",
+  "version": "0.1.0",
+  "description": "Automatically scrape page HTML/CSS/DOM snapshots for InsightUI workflows.",
+  "permissions": ["storage", "tabs", "downloads", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "InsightUI Scraper",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
