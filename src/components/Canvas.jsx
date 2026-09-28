@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import InterfaceInput from './InterfaceInput';
+import Icon from './Icon';
 import './Canvas.css';
 
 const Canvas = ({
@@ -124,26 +125,26 @@ const Canvas = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onMouseDown={handleMouseDown}
-        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+        style={{ cursor: screenshot ? (isPanning ? 'grabbing' : 'grab') : 'default' }}
       >
         {!screenshot ? (
-          <div className={`upload-zone ${dragActive ? 'active' : ''}`}>
+          <label htmlFor="file-input" className={`upload-zone ${dragActive ? 'active' : ''}`}>
             <div className="upload-content">
-              <div className="upload-icon">📤</div>
-              <h2>Upload UI Screenshot</h2>
-              <p>Drag and drop your screenshot here or click to browse</p>
-              <label htmlFor="file-input" className="file-button">
-                Choose File
-              </label>
+              <div className="upload-icon">
+                <Icon name="upload" size={22} />
+              </div>
+              <h2>Drop a UI screenshot</h2>
+              <p>PNG, JPG or WebP. Or skip it and paste code below.</p>
+              <span className="file-button">Choose file</span>
               <input
                 id="file-input"
                 type="file"
                 accept="image/*"
                 onChange={handleFileSelect}
-                style={{ display: 'none' }}
+                className="visually-hidden"
               />
             </div>
-          </div>
+          </label>
         ) : (
           <div className="screenshot-wrapper" style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)` }}>
             <div className="screenshot-container" style={{ transform: `scale(${zoom})` }}>
@@ -177,16 +178,18 @@ const Canvas = ({
               className="zoom-button"
               onClick={() => onZoomChange(Math.max(0.25, zoom - 0.25))}
               title="Zoom out (Ctrl + Scroll)"
+              aria-label="Zoom out"
             >
-              −
+              <Icon name="minus" />
             </button>
             <span className="zoom-indicator">{Math.round(zoom * 100)}%</span>
             <button
               className="zoom-button"
               onClick={() => onZoomChange(Math.min(4, zoom + 0.25))}
               title="Zoom in (Ctrl + Scroll)"
+              aria-label="Zoom in"
             >
-              +
+              <Icon name="plus" />
             </button>
             <button
               className="reset-button"
@@ -195,8 +198,9 @@ const Canvas = ({
                 onZoomChange(1);
               }}
               title="Reset view"
+              aria-label="Reset view"
             >
-              ⟲
+              <Icon name="reset" size={15} />
             </button>
           </div>
         )}
@@ -204,7 +208,8 @@ const Canvas = ({
         {isAnalyzing && (
           <div className="analyzing-overlay">
             <div className="analyzing-spinner"></div>
-            <p>Analyzing interface...</p>
+            <p>Analyzing interface…</p>
+            <span>This can take a minute on larger models</span>
           </div>
         )}
       </div>

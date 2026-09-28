@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import Icon from './Icon';
 import './InterfaceInput.css';
 
 const InterfaceInput = ({
@@ -50,14 +51,15 @@ const InterfaceInput = ({
   };
 
   return (
-    <div className="interface-input-panel">
+    <section className="interface-input-panel">
       <div className="interface-input-header">
         <div>
-          <h3>Interface Inputs</h3>
-          <p>Paste HTML/CSS/DOM or add a short product description. Use a screenshot, code, or both.</p>
+          <h3>Interface inputs</h3>
+          <p>Add code or context alongside the screenshot. Any combination works.</p>
         </div>
-        <label className="file-upload-label">
-          Upload Snapshot JSON
+        <label className="ghost-button">
+          <Icon name="file" size={14} />
+          Import snapshot JSON
           <input
             type="file"
             accept="application/json,.json"
@@ -70,8 +72,12 @@ const InterfaceInput = ({
       <div className="field-grid">
         <div className="field-card">
           <div className="field-card-header">
-            <span>HTML</span>
+            <span className="field-label">
+              <span className="field-tag">HTML</span>
+              Markup
+            </span>
             <label className="file-upload-label">
+              <Icon name="upload" size={12} />
               Upload
               <input
                 type="file"
@@ -82,16 +88,22 @@ const InterfaceInput = ({
             </label>
           </div>
           <textarea
+            className="code-input"
             value={htmlCode}
             onChange={(e) => onHtmlChange(e.target.value)}
-            placeholder="Paste HTML markup here..."
+            placeholder="<main>…</main>"
+            spellCheck={false}
           />
         </div>
 
         <div className="field-card">
           <div className="field-card-header">
-            <span>CSS</span>
+            <span className="field-label">
+              <span className="field-tag">CSS</span>
+              Styles
+            </span>
             <label className="file-upload-label">
+              <Icon name="upload" size={12} />
               Upload
               <input
                 type="file"
@@ -102,33 +114,40 @@ const InterfaceInput = ({
             </label>
           </div>
           <textarea
+            className="code-input"
             value={cssCode}
             onChange={(e) => onCssChange(e.target.value)}
-            placeholder="Paste CSS rules here..."
+            placeholder=".button { … }"
+            spellCheck={false}
           />
         </div>
       </div>
 
       <div className="field-card">
         <div className="field-card-header">
-          <span>DOM / rendered markup</span>
+          <span className="field-label">
+            <span className="field-tag">DOM</span>
+            Rendered markup
+          </span>
         </div>
         <textarea
+          className="code-input"
           value={domContent}
           onChange={(e) => onDomChange(e.target.value)}
-          placeholder="Paste DOM content or rendered markup here..."
+          placeholder="Paste DOM content or rendered markup…"
           rows={4}
+          spellCheck={false}
         />
       </div>
 
       <div className="field-card">
         <div className="field-card-header">
-          <span>Product / page description</span>
+          <span className="field-label">Product / page description</span>
         </div>
         <textarea
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Briefly describe the page goal, product, or target user..."
+          placeholder="What is this page for, and who uses it?"
           rows={3}
         />
       </div>
@@ -139,10 +158,20 @@ const InterfaceInput = ({
           onClick={onAnalyze}
           disabled={isAnalyzing}
         >
-          {isAnalyzing ? 'Analyzing...' : 'Analyze Interface'}
+          {isAnalyzing ? (
+            <>
+              <span className="mini-spinner" />
+              Analyzing…
+            </>
+          ) : (
+            <>
+              <Icon name="sparkles" size={15} />
+              Analyze interface
+            </>
+          )}
         </button>
       </div>
-    </div>
+    </section>
   );
 };
 

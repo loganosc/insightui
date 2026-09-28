@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAvailableModels } from '../utils/ollamaApi';
+import Icon from './Icon';
 import './TopBar.css';
 
 const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleTheme }) => {
@@ -27,59 +28,79 @@ const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleThem
     fetchModels();
   }, []);
 
+  const connected = !loading && models.length > 0;
+
   return (
-    <div className="top-bar">
+    <header className="top-bar">
       <div className="top-bar-left">
-        <h1 className="app-title">InsightUI</h1>
-        <span className="app-subtitle">AI-Powered UX Critique</span>
+        <div className="app-logo" aria-hidden="true">
+          <Icon name="sparkles" size={16} strokeWidth={2} />
+        </div>
+        <div className="app-brand">
+          <h1 className="app-title">InsightUI</h1>
+          <span className="app-subtitle">AI-Powered UX Critique</span>
+        </div>
       </div>
 
       <div className="top-bar-center">
-        <label htmlFor="model-select" className="model-label">
-          Model:
-        </label>
-        <select
-          id="model-select"
-          value={selectedModel}
-          onChange={(e) => onModelChange(e.target.value)}
-          disabled={isAnalyzing || loading}
-          className="model-select"
-        >
-          {loading ? (
-            <option>Loading models...</option>
-          ) : models.length > 0 ? (
-            models.map((model) => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))
-          ) : (
-            <option>No models available</option>
-          )}
-        </select>
-        {isAnalyzing && <span className="analyzing-indicator">🔄 Analyzing...</span>}
+        <div className={`model-picker ${isAnalyzing ? 'is-busy' : ''}`}>
+          <span
+            className={`status-dot ${loading ? 'pending' : connected ? 'online' : 'offline'}`}
+            title={loading ? 'Connecting to Ollama...' : connected ? 'Connected to Ollama' : 'Ollama not reachable'}
+          />
+          <label htmlFor="model-select" className="model-label">
+            Model
+          </label>
+          <select
+            id="model-select"
+            value={selectedModel}
+            onChange={(e) => onModelChange(e.target.value)}
+            disabled={isAnalyzing || loading}
+            className="model-select"
+          >
+            {loading ? (
+              <option>Loading models...</option>
+            ) : models.length > 0 ? (
+              models.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))
+            ) : (
+              <option>No models available</option>
+            )}
+          </select>
+        </div>
+        {isAnalyzing && (
+          <span className="analyzing-indicator">
+            <span className="mini-spinner" />
+            Analyzing
+          </span>
+        )}
       </div>
 
       <div className="top-bar-right">
         <button
-          className="theme-toggle"
+          className="icon-button"
           type="button"
           onClick={onToggleTheme}
           title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
-          {theme === 'light' ? '🌙' : '☀️'}
+          <Icon name={theme === 'light' ? 'moon' : 'sun'} />
         </button>
         <a
-          href="https://ollama.ai"
+          href="https://ollama.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="info-link"
+          className="icon-button"
           title="Ollama documentation"
+          aria-label="Ollama documentation"
         >
-          ?
+          <Icon name="help" />
         </a>
       </div>
-    </div>
+    </header>
   );
 };
 

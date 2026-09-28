@@ -110,7 +110,15 @@ function App() {
   const [description, setDescription] = useState('');
   const [critiqueData, setCritiqueData] = useState({});
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem('insightui_theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch (_error) {
+      // Storage unavailable; fall back to system preference
+    }
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [highlightBox, setHighlightBox] = useState(null);
@@ -234,7 +242,15 @@ function App() {
   };
 
   const toggleTheme = () => {
-    setTheme((current) => (current === 'light' ? 'dark' : 'light'));
+    setTheme((current) => {
+      const next = current === 'light' ? 'dark' : 'light';
+      try {
+        window.localStorage.setItem('insightui_theme', next);
+      } catch (_error) {
+        // Ignore storage failures; theme still applies for this session
+      }
+      return next;
+    });
   };
 
   const handleModelChange = (model) => {

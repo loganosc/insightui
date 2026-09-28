@@ -1,6 +1,27 @@
 import React, { useState } from 'react';
 import CritiqueCard from './CritiqueCard';
+import Icon from './Icon';
 import './Inspector.css';
+
+const categories = ['usability', 'accessibility', 'visual_hierarchy', 'interaction_design', 'consistency'];
+
+const categoryIcons = {
+  usability: 'user',
+  accessibility: 'accessibility',
+  visual_hierarchy: 'layout',
+  interaction_design: 'pointer',
+  consistency: 'layers'
+};
+
+const categoryLabels = {
+  usability: 'Usability',
+  accessibility: 'Accessibility',
+  visual_hierarchy: 'Visual Hierarchy',
+  interaction_design: 'Interaction Design',
+  consistency: 'Consistency'
+};
+
+const severities = ['High', 'Medium', 'Low'];
 
 const Inspector = ({
   critiqueData,
@@ -9,8 +30,6 @@ const Inspector = ({
   onChat,
   isLoading
 }) => {
-  const categories = ['usability', 'accessibility', 'visual_hierarchy', 'interaction_design', 'consistency'];
-
   const [expandedCategories, setExpandedCategories] = useState({
     usability: true,
     accessibility: true,
@@ -26,58 +45,91 @@ const Inspector = ({
     }));
   };
 
-  const categoryIcons = {
-    usability: '👤',
-    accessibility: '♿',
-    visual_hierarchy: '📐',
-    interaction_design: '🎯',
-    consistency: '✓'
-  };
+  const allIssues = Object.values(critiqueData).flat();
+  const totalIssues = allIssues.length;
+  const severityCounts = severities.reduce((acc, level) => {
+    acc[level] = allIssues.filter((item) => item?.severity === level).length;
+    return acc;
+  }, {});
 
-  const categoryLabels = {
-    usability: 'Usability',
-    accessibility: 'Accessibility',
-    visual_hierarchy: 'Visual Hierarchy',
-    interaction_design: 'Interaction Design',
-    consistency: 'Consistency'
-  };
-
-  const totalIssues = Object.values(critiqueData).flat().length;
-
-  if (isLoading){
-    return (
-      <div className="inspector-panel">
-        <div className="inspector-header">
-          <h2>Critique Inspector</h2>
-        </div>
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading analysis...</p>
-        </div>
+  const header = (
+    <div className="inspector-header">
+      <div className="inspector-title">
+        <h2>Critique</h2>
+        {totalIssues > 0 && !isLoading && (
+          <span className="issues-count">{totalIssues} issues</span>
+        )}
       </div>
+      {totalIssues > 0 && !isLoading && (
+        <>
+          <div className="severity-bar" aria-hidden="true">
+            {severities.map((level) =>
+              severityCounts[level] > 0 ? (
+                <span
+                  key={level}
+                  className={`severity-bar-segment sev-${level.toLowerCase()}`}
+                  style={{ flexGrow: severityCounts[level] }}
+                />
+              ) : null
+            )}
+          </div>
+          <div className="severity-summary">
+            {severities.map((level) => (
+              <span key={level} className={`severity-chip sev-${level.toLowerCase()}`}>
+                <span className="severity-dot" />
+                {severityCounts[level]} {level}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <aside className="inspector-panel">
+        {header}
+        <div className="inspector-content" aria-busy="true">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="skeleton-card" style={{ animationDelay: `${i * 0.12}s` }}>
+              <div className="skeleton-line short" />
+              <div className="skeleton-line" />
+              <div className="skeleton-line medium" />
+            </div>
+          ))}
+          <p className="loading-caption">Reviewing usability, accessibility, hierarchy…</p>
+        </div>
+      </aside>
     );
   }
 
   if (totalIssues === 0) {
     return (
-      <div className="inspector-panel">
-        <div className="inspector-header">
-          <h2>Critique Inspector</h2>
-        </div>
+      <aside className="inspector-panel">
+        {header}
         <div className="empty-state">
-          <div className="empty-icon">✨</div>
-          <p>Add interface input and click Analyze Interface to see critique feedback</p>
+          <div className="empty-icon">
+            <Icon name="sparkles" size={24} />
+          </div>
+          <h3>No critique yet</h3>
+          <p>Add a screenshot or some code, then click <strong>Analyze interface</strong>.</p>
+          <ul className="empty-categories">
+            {categories.map((category) => (
+              <li key={category} style={{ '--cat': `var(--cat-${category})` }}>
+                <Icon name={categoryIcons[category]} size={13} />
+                {categoryLabels[category]}
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
+      </aside>
     );
   }
 
   return (
-    <div className="inspector-panel">
-      <div className="inspector-header">
-        <h2>Critique Inspector</h2>
-        <span className="issues-count">{totalIssues} issues</span>
-      </div>
+    <aside className="inspector-panel">
+      {header}
 
       <div className="inspector-content">
         {categories.map((category) => {
@@ -85,16 +137,23 @@ const Inspector = ({
           const isExpanded = expandedCategories[category];
 
           return (
-            <div key={category} className="category-section">
+            <section
+              key={category}
+              className="category-section"
+              style={{ '--cat': `var(--cat-${category})` }}
+            >
               <button
-                className="category-header"
+                className={`category-header ${isExpanded ? 'expanded' : ''}`}
                 onClick={() => toggleCategory(category)}
+                aria-expanded={isExpanded}
               >
-                <span className="category-toggle">{isExpanded ? '▼' : '▶'}</span>
-                <span className="category-icon">{categoryIcons[category]}</span>
-                <span className="category-name">
-                  {categoryLabels[category]}
+                <span className="category-toggle">
+                  <Icon name="chevron" size={14} />
                 </span>
+                <span className="category-icon">
+                  <Icon name={categoryIcons[category]} size={14} />
+                </span>
+                <span className="category-name">{categoryLabels[category]}</span>
                 <span className="category-count">{issues.length}</span>
               </button>
 
@@ -108,7 +167,7 @@ const Inspector = ({
                         element={item.element}
                         fix={item.fix}
                         severity={item.severity}
-                        categoryIcon={categoryIcons[category]}
+                        categoryIcon={<Icon name={categoryIcons[category]} size={13} />}
                         onSelect={() => onSelectCritique({ category, index, item })}
                         isSelected={
                           selectedCritique?.category === category &&
@@ -118,15 +177,15 @@ const Inspector = ({
                       />
                     ))
                   ) : (
-                    <p className="issue-text">No issues returned in this category.</p>
+                    <p className="category-empty">No issues returned in this category.</p>
                   )}
                 </div>
               )}
-            </div>
+            </section>
           );
         })}
       </div>
-    </div>
+    </aside>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { generatePDFReport } from '../utils/pdfExport';
+import Icon from './Icon';
 import './BottomBar.css';
 
 const BottomBar = ({ critiqueData, screenshot, isLoading }) => {
@@ -26,10 +27,13 @@ const BottomBar = ({ critiqueData, screenshot, isLoading }) => {
   return (
     <div className="bottom-bar">
       <div className="bottom-bar-left">
-        <span className="status-info">
-          {totalIssues > 0
-            ? `${totalIssues} issues identified`
-            : 'Ready to analyze'}
+        <span className={`status-info ${isLoading ? 'busy' : totalIssues > 0 ? 'done' : ''}`}>
+          <span className="status-indicator" />
+          {isLoading
+            ? 'Analyzing…'
+            : totalIssues > 0
+              ? `${totalIssues} issues identified`
+              : 'Ready to analyze'}
         </span>
       </div>
 
@@ -40,7 +44,8 @@ const BottomBar = ({ critiqueData, screenshot, isLoading }) => {
           disabled={isLoading || exporting || totalIssues === 0}
           title="Export critique report as PDF"
         >
-          {exporting ? '⏳ Exporting...' : '📥 Export as PDF'}
+          {exporting ? <span className="mini-spinner" /> : <Icon name="download" size={14} />}
+          {exporting ? 'Exporting…' : 'Export PDF'}
         </button>
       </div>
     </div>
