@@ -115,9 +115,9 @@ function App() {
       const saved = window.localStorage.getItem('insightui_theme');
       if (saved === 'light' || saved === 'dark') return saved;
     } catch (_error) {
-      // Storage unavailable; fall back to system preference
+      // Storage unavailable; fall back to the default theme
     }
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return 'light';
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -282,6 +282,12 @@ function App() {
   }, [applySnapshotToInputs]);
 
   useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('theme-dark', theme === 'dark');
+    root.classList.toggle('theme-light', theme === 'light');
+  }, [theme]);
+
+  useEffect(() => {
     const handleReadyEvent = () => {
       loadExtensionPayload();
     };
@@ -295,7 +301,11 @@ function App() {
   }, [loadExtensionPayload]);
 
   return (
-    <div className={`app theme-${theme}`}>
+    <div className="app">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+
       <TopBar
         selectedModel={selectedModel}
         onModelChange={handleModelChange}
@@ -304,7 +314,7 @@ function App() {
         onToggleTheme={toggleTheme}
       />
 
-      <div className="main-layout">
+      <main id="main-content" className="main-layout" tabIndex={-1}>
         <Canvas
           screenshot={screenshot}
           onScreenshotUpload={handleScreenshotUpload}
@@ -331,7 +341,7 @@ function App() {
           onChat={handleChat}
           isLoading={isAnalyzing}
         />
-      </div>
+      </main>
 
       <BottomBar
         critiqueData={critiqueData}

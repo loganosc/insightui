@@ -3,12 +3,10 @@
   --sev-soft: var(--sev-medium-soft);
 
   position: relative;
-  padding: 12px 14px 10px 16px;
+  padding: 4px 6px 10px 8px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  cursor: pointer;
-  overflow: hidden;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
@@ -21,7 +19,8 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 3px;
+  width: 4px;
+  border-radius: var(--radius) 0 0 var(--radius);
   background: var(--sev);
 }
 
@@ -30,10 +29,23 @@
   box-shadow: var(--shadow);
 }
 
+/* Selection is shown by a thicker border, not just color */
 .critique-card.selected {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 4%, var(--surface));
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  border: 2px solid var(--primary);
+  padding: 3px 5px 9px 7px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+
+.critique-select {
+  display: block;
+  width: 100%;
+  padding: 10px 8px 6px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .critique-header {
@@ -41,13 +53,13 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .critique-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   flex: 1;
 }
@@ -59,7 +71,7 @@
 }
 
 .element-name {
-  font-size: 12px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted);
   white-space: nowrap;
@@ -73,14 +85,14 @@
 
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 20px;
-  padding: 0 8px;
+  gap: 6px;
+  min-height: 24px;
+  padding: 0 10px;
   border-radius: 999px;
   background: var(--sev-soft);
   color: var(--sev);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -88,29 +100,30 @@
 .severity-badge.sev-low { --sev: var(--sev-low); --sev-soft: var(--sev-low-soft); }
 
 .severity-badge .severity-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 .issue-text {
-  font-size: 13.5px;
+  display: block;
+  font-size: 1rem;
   font-weight: 500;
   line-height: 1.5;
   color: var(--text);
-  margin-bottom: 6px;
 }
 
 .expand-button {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 6px 3px 2px;
-  margin-left: -2px;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px 0 6px;
+  margin-left: 4px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: none;
   color: var(--primary);
-  font-size: 12px;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -118,6 +131,7 @@
 
 .expand-button:hover {
   background: var(--primary-soft);
+  text-decoration: underline;
 }
 
 .expand-button .icon {
@@ -131,17 +145,16 @@
 .critique-details {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 8px;
-  padding-top: 10px;
+  gap: 12px;
+  margin: 8px 4px 0 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
-  cursor: default;
   animation: fadeUp 0.2s ease-out;
 }
 
 .fix-section,
 .chat-reply {
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 10px;
   background: var(--surface-soft);
   border: 1px solid var(--border);
@@ -152,10 +165,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -170,8 +183,8 @@
 
 .fix-section p,
 .chat-reply p {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--text);
 }
 
@@ -188,57 +201,53 @@
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
   background: var(--surface);
   color: var(--text);
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: 0.9375rem;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .chat-toggle:hover {
   background: var(--surface-soft);
-  border-color: var(--border-strong);
+  border-color: var(--text);
 }
 
 .chat-form {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 3px 3px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  padding: 4px 4px 4px 14px;
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
   background: var(--surface);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
+/* The form draws the ring so the input and send button read as one control */
 .chat-form:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  border-color: var(--focus);
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .chat-input {
   flex: 1;
   min-width: 0;
-  height: 30px;
+  min-height: 36px;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 1rem;
 }
 
-.chat-input:focus,
 .chat-input:focus-visible {
   outline: none;
-  box-shadow: none;
-}
-
-.chat-input::placeholder {
-  color: var(--subtle);
 }
 
 .chat-input:disabled {
@@ -246,12 +255,13 @@
 }
 
 .chat-submit {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--primary-solid);
   color: var(--inverse-text);
   cursor: pointer;
@@ -265,13 +275,4 @@
 .chat-submit:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-
-.chat-error {
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--sev-high-soft);
-  color: var(--sev-high);
-  font-size: 12.5px;
-  line-height: 1.45;
 }

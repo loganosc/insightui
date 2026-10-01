@@ -1,10 +1,12 @@
 .bottom-bar {
   flex-shrink: 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  height: 48px;
-  padding: 0 16px 0 20px;
+  gap: 8px 16px;
+  min-height: 56px;
+  padding: 8px 16px 8px 20px;
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
@@ -12,22 +14,23 @@
 .bottom-bar-left,
 .bottom-bar-right {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 8px 16px;
 }
 
 .status-info {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted);
 }
 
 .status-indicator {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--subtle);
 }
@@ -41,17 +44,26 @@
   background: var(--sev-low);
 }
 
+.export-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sev-high);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
 .export-button {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 32px;
-  padding: 0 14px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
   background: var(--surface);
   color: var(--text);
-  font-size: 12.5px;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
@@ -60,7 +72,7 @@
 
 .export-button:hover:not(:disabled) {
   background: var(--surface-soft);
-  border-color: var(--border-strong);
+  border-color: var(--text);
 }
 
 .export-button:disabled {

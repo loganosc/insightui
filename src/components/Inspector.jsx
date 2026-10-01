@@ -55,10 +55,12 @@ const Inspector = ({
   const header = (
     <div className="inspector-header">
       <div className="inspector-title">
-        <h2>Critique</h2>
-        {totalIssues > 0 && !isLoading && (
-          <span className="issues-count">{totalIssues} issues</span>
-        )}
+        <h2 id="critique-heading">Critique</h2>
+        <span className="issues-count" role="status">
+          {totalIssues > 0 && !isLoading
+            ? `${totalIssues} ${totalIssues === 1 ? 'issue' : 'issues'}`
+            : ''}
+        </span>
       </div>
       {totalIssues > 0 && !isLoading && (
         <>
@@ -73,10 +75,10 @@ const Inspector = ({
               ) : null
             )}
           </div>
-          <div className="severity-summary">
+          <div className="severity-summary" role="group" aria-label="Issues by severity">
             {severities.map((level) => (
               <span key={level} className={`severity-chip sev-${level.toLowerCase()}`}>
-                <span className="severity-dot" />
+                <span className="severity-dot" aria-hidden="true" />
                 {severityCounts[level]} {level}
               </span>
             ))}
@@ -88,53 +90,54 @@ const Inspector = ({
 
   if (isLoading) {
     return (
-      <aside className="inspector-panel">
+      <section className="inspector-panel" aria-labelledby="critique-heading">
         {header}
         <div className="inspector-content" aria-busy="true">
           {[0, 1, 2].map((i) => (
             <div key={i} className="skeleton-card" style={{ animationDelay: `${i * 0.12}s` }}>
-              <div className="skeleton-line short" />
+              <div className="skeleton-line short" aria-hidden="true" />
               <div className="skeleton-line" />
               <div className="skeleton-line medium" />
             </div>
           ))}
           <p className="loading-caption">Reviewing usability, accessibility, hierarchy…</p>
         </div>
-      </aside>
+      </section>
     );
   }
 
   if (totalIssues === 0) {
     return (
-      <aside className="inspector-panel">
+      <section className="inspector-panel" aria-labelledby="critique-heading">
         {header}
         <div className="empty-state">
-          <div className="empty-icon">
-            <Icon name="sparkles" size={24} />
+          <div className="empty-icon" aria-hidden="true">
+            <Icon name="sparkles" size={26} />
           </div>
           <h3>No critique yet</h3>
           <p>Add a screenshot or some code, then click <strong>Analyze interface</strong>.</p>
-          <ul className="empty-categories">
+          <ul className="empty-categories" aria-label="Categories reviewed">
             {categories.map((category) => (
               <li key={category} style={{ '--cat': `var(--cat-${category})` }}>
-                <Icon name={categoryIcons[category]} size={13} />
+                <Icon name={categoryIcons[category]} size={16} />
                 {categoryLabels[category]}
               </li>
             ))}
           </ul>
         </div>
-      </aside>
+      </section>
     );
   }
 
   return (
-    <aside className="inspector-panel">
+    <section className="inspector-panel" aria-labelledby="critique-heading">
       {header}
 
       <div className="inspector-content">
         {categories.map((category) => {
           const issues = Array.isArray(critiqueData?.[category]) ? critiqueData[category] : [];
           const isExpanded = expandedCategories[category];
+          const panelId = `category-panel-${category}`;
 
           return (
             <section
@@ -142,23 +145,30 @@ const Inspector = ({
               className="category-section"
               style={{ '--cat': `var(--cat-${category})` }}
             >
-              <button
-                className={`category-header ${isExpanded ? 'expanded' : ''}`}
-                onClick={() => toggleCategory(category)}
-                aria-expanded={isExpanded}
-              >
-                <span className="category-toggle">
-                  <Icon name="chevron" size={14} />
-                </span>
-                <span className="category-icon">
-                  <Icon name={categoryIcons[category]} size={14} />
-                </span>
-                <span className="category-name">{categoryLabels[category]}</span>
-                <span className="category-count">{issues.length}</span>
-              </button>
+              <h3 className="category-heading">
+                <button
+                  type="button"
+                  className={`category-header ${isExpanded ? 'expanded' : ''}`}
+                  onClick={() => toggleCategory(category)}
+                  aria-expanded={isExpanded}
+                  aria-controls={panelId}
+                >
+                  <span className="category-toggle" aria-hidden="true">
+                    <Icon name="chevron" size={16} />
+                  </span>
+                  <span className="category-icon" aria-hidden="true">
+                    <Icon name={categoryIcons[category]} size={16} />
+                  </span>
+                  <span className="category-name">{categoryLabels[category]}</span>
+                  <span className="category-count">
+                    {issues.length}
+                    <span className="visually-hidden"> {issues.length === 1 ? 'issue' : 'issues'}</span>
+                  </span>
+                </button>
+              </h3>
 
               {isExpanded && (
-                <div className="category-items">
+                <div className="category-items" id={panelId}>
                   {issues.length > 0 ? (
                     issues.map((item, index) => (
                       <CritiqueCard
@@ -167,7 +177,7 @@ const Inspector = ({
                         element={item.element}
                         fix={item.fix}
                         severity={item.severity}
-                        categoryIcon={<Icon name={categoryIcons[category]} size={13} />}
+                        categoryIcon={<Icon name={categoryIcons[category]} size={16} />}
                         onSelect={() => onSelectCritique({ category, index, item })}
                         isSelected={
                           selectedCritique?.category === category &&
@@ -185,7 +195,7 @@ const Inspector = ({
           );
         })}
       </div>
-    </aside>
+    </section>
   );
 };
 

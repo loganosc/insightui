@@ -25,8 +25,10 @@ const Canvas = ({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [uploadError, setUploadError] = useState('');
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -52,9 +54,11 @@ const Canvas = ({
 
   const handleFile = (file) => {
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      setUploadError(`"${file.name}" isn't an image. Choose a PNG, JPG or WebP file.`);
       return;
     }
+
+    setUploadError('');
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -100,6 +104,32 @@ const Canvas = ({
     };
   }, [isPanning, panStart]);
 
+  const PAN_STEP = 40;
+  const handleViewerKeyDown = (e) => {
+    const step = e.shiftKey ? PAN_STEP * 4 : PAN_STEP;
+    const pan = {
+      ArrowLeft: { x: step, y: 0 },
+      ArrowRight: { x: -step, y: 0 },
+      ArrowUp: { x: 0, y: step },
+      ArrowDown: { x: 0, y: -step }
+    }[e.key];
+
+    if (pan) {
+      e.preventDefault();
+      setPanOffset((prev) => ({ x: prev.x + pan.x, y: prev.y + pan.y }));
+    } else if (e.key === '+' || e.key === '=') {
+      e.preventDefault();
+      onZoomChange(Math.min(4, zoom + 0.25));
+    } else if (e.key === '-' || e.key === '_') {
+      e.preventDefault();
+      onZoomChange(Math.max(0.25, zoom - 0.25));
+    } else if (e.key === '0') {
+      e.preventDefault();
+      setPanOffset({ x: 0, y: 0 });
+      onZoomChange(1);
+    }
+  };
+
   const handleWheel = (e) => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
@@ -117,7 +147,8 @@ const Canvas = ({
   }, [zoom]);
 
   return (
-    <div className="canvas-panel">
+    <section className="canvas-panel" aria-labelledby="canvas-heading">
+      <h2 id="canvas-heading" className="visually-hidden">Interface to critique</h2>
       <div
         ref={containerRef}
         className="canvas-container"
@@ -125,33 +156,54 @@ const Canvas = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onMouseDown={handleMouseDown}
+        onKeyDown={screenshot ? handleViewerKeyDown : undefined}
+        tabIndex={screenshot ? 0 : undefined}
+        role={screenshot ? 'region' : undefined}
+        aria-label={screenshot ? 'Screenshot viewer' : undefined}
+        aria-describedby={screenshot ? 'viewer-help' : undefined}
         style={{ cursor: screenshot ? (isPanning ? 'grabbing' : 'grab') : 'default' }}
       >
         {!screenshot ? (
-          <label htmlFor="file-input" className={`upload-zone ${dragActive ? 'active' : ''}`}>
+          <div
+            className={`upload-zone ${dragActive ? 'active' : ''}`}
+            onClick={(e) => {
+              if (e.target === fileInputRef.current || e.target.closest('label')) return;
+              fileInputRef.current?.click();
+            }}
+          >
             <div className="upload-content">
-              <div className="upload-icon">
-                <Icon name="upload" size={22} />
+              <div className="upload-icon" aria-hidden="true">
+                <Icon name="upload" size={24} />
               </div>
-              <h2>Drop a UI screenshot</h2>
-              <p>PNG, JPG or WebP. Or skip it and paste code below.</p>
-              <span className="file-button">Choose file</span>
-              <input
-                id="file-input"
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="visually-hidden"
-              />
+              <h3>Drop a UI screenshot</h3>
+              <p id="upload-hint">PNG, JPG or WebP. Or skip it and paste code below.</p>
+              <label htmlFor="file-input" className="file-button">
+                Choose screenshot file
+                <input
+                  ref={fileInputRef}
+                  id="file-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  aria-describedby={uploadError ? 'upload-hint upload-error' : 'upload-hint'}
+                  className="visually-hidden"
+                />
+              </label>
+              {uploadError && (
+                <p id="upload-error" className="inline-error" role="alert">
+                  <Icon name="alert" size={16} />
+                  <span>{uploadError}</span>
+                </p>
+              )}
             </div>
-          </label>
+          </div>
         ) : (
           <div className="screenshot-wrapper" style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)` }}>
             <div className="screenshot-container" style={{ transform: `scale(${zoom})` }}>
               <img
                 ref={canvasRef}
                 src={screenshot}
-                alt="Screenshot"
+                alt="Uploaded interface screenshot being critiqued"
                 className="screenshot-image"
               />
 
@@ -173,8 +225,15 @@ const Canvas = ({
         )}
 
         {screenshot && (
-          <div className="canvas-controls">
+          <p id="viewer-help" className="visually-hidden">
+            Use arrow keys to pan, plus and minus to zoom, and 0 to reset the view.
+          </p>
+        )}
+
+        {screenshot && (
+          <div className="canvas-controls" role="group" aria-label="Zoom controls">
             <button
+              type="button"
               className="zoom-button"
               onClick={() => onZoomChange(Math.max(0.25, zoom - 0.25))}
               title="Zoom out (Ctrl + Scroll)"
@@ -182,8 +241,11 @@ const Canvas = ({
             >
               <Icon name="minus" />
             </button>
-            <span className="zoom-indicator">{Math.round(zoom * 100)}%</span>
+            <output className="zoom-indicator" aria-live="polite" aria-label={`Zoom ${Math.round(zoom * 100)} percent`}>
+              {Math.round(zoom * 100)}%
+            </output>
             <button
+              type="button"
               className="zoom-button"
               onClick={() => onZoomChange(Math.min(4, zoom + 0.25))}
               title="Zoom in (Ctrl + Scroll)"
@@ -192,6 +254,7 @@ const Canvas = ({
               <Icon name="plus" />
             </button>
             <button
+              type="button"
               className="reset-button"
               onClick={() => {
                 setPanOffset({ x: 0, y: 0 });
@@ -207,7 +270,7 @@ const Canvas = ({
 
         {isAnalyzing && (
           <div className="analyzing-overlay">
-            <div className="analyzing-spinner"></div>
+            <div className="analyzing-spinner" aria-hidden="true"></div>
             <p>Analyzing interface…</p>
             <span>This can take a minute on larger models</span>
           </div>
@@ -227,7 +290,7 @@ const Canvas = ({
         onAnalyze={onAnalyze}
         isAnalyzing={isAnalyzing}
       />
-    </div>
+    </section>
   );
 };
 

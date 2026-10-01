@@ -29,6 +29,13 @@ const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleThem
   }, []);
 
   const connected = !loading && models.length > 0;
+  const connectionState = loading ? 'pending' : connected ? 'online' : 'offline';
+  const connectionLabel = {
+    pending: 'Connecting',
+    online: 'Ollama connected',
+    offline: 'Ollama offline'
+  }[connectionState];
+  const nextTheme = theme === 'light' ? 'dark' : 'light';
 
   return (
     <header className="top-bar">
@@ -43,11 +50,11 @@ const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleThem
       </div>
 
       <div className="top-bar-center">
+        <span className={`connection-status ${connectionState}`} role="status">
+          <span className="status-dot" aria-hidden="true" />
+          {connectionLabel}
+        </span>
         <div className={`model-picker ${isAnalyzing ? 'is-busy' : ''}`}>
-          <span
-            className={`status-dot ${loading ? 'pending' : connected ? 'online' : 'offline'}`}
-            title={loading ? 'Connecting to Ollama...' : connected ? 'Connected to Ollama' : 'Ollama not reachable'}
-          />
           <label htmlFor="model-select" className="model-label">
             Model
           </label>
@@ -73,7 +80,7 @@ const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleThem
         </div>
         {isAnalyzing && (
           <span className="analyzing-indicator">
-            <span className="mini-spinner" />
+            <span className="mini-spinner" aria-hidden="true" />
             Analyzing
           </span>
         )}
@@ -81,21 +88,23 @@ const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleThem
 
       <div className="top-bar-right">
         <button
-          className="icon-button"
+          className="theme-toggle"
           type="button"
           onClick={onToggleTheme}
-          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          aria-label={`Switch to ${nextTheme} mode`}
         >
-          <Icon name={theme === 'light' ? 'moon' : 'sun'} />
+          <Icon name={theme === 'light' ? 'moon' : 'sun'} size={18} />
+          <span className="theme-toggle-label">
+            {nextTheme === 'dark' ? 'Dark mode' : 'Light mode'}
+          </span>
         </button>
         <a
           href="https://ollama.com"
           target="_blank"
           rel="noopener noreferrer"
           className="icon-button"
-          title="Ollama documentation"
-          aria-label="Ollama documentation"
+          title="Ollama documentation (opens in a new tab)"
+          aria-label="Ollama documentation (opens in a new tab)"
         >
           <Icon name="help" />
         </a>

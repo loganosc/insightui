@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Icon from './Icon';
 import './InterfaceInput.css';
 
@@ -18,6 +18,7 @@ const InterfaceInput = ({
   const htmlFileRef = useRef(null);
   const cssFileRef = useRef(null);
   const jsonFileRef = useRef(null);
+  const [importError, setImportError] = useState('');
 
   const handleFileUpload = (event, onChange) => {
     const file = event.target.files?.[0];
@@ -34,6 +35,7 @@ const InterfaceInput = ({
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
+        setImportError('');
         const parsed = JSON.parse(e.target.result);
         const snapshot = parsed?.pageSnapshot || parsed;
 
@@ -43,7 +45,7 @@ const InterfaceInput = ({
 
         onSnapshotImport?.(snapshot);
       } catch (error) {
-        alert(`Failed to import JSON: ${error.message}`);
+        setImportError(`Couldn't import "${file.name}": ${error.message}`);
       }
     };
     reader.readAsText(file);
@@ -51,14 +53,14 @@ const InterfaceInput = ({
   };
 
   return (
-    <section className="interface-input-panel">
+    <section className="interface-input-panel" aria-labelledby="inputs-heading">
       <div className="interface-input-header">
         <div>
-          <h3>Interface inputs</h3>
+          <h3 id="inputs-heading">Interface inputs</h3>
           <p>Add code or context alongside the screenshot. Any combination works.</p>
         </div>
         <label className="ghost-button">
-          <Icon name="file" size={14} />
+          <Icon name="file" size={16} />
           Import snapshot JSON
           <input
             type="file"
@@ -69,16 +71,23 @@ const InterfaceInput = ({
         </label>
       </div>
 
+      {importError && (
+        <p className="inline-error" role="alert">
+          <Icon name="alert" size={16} />
+          <span>{importError}</span>
+        </p>
+      )}
+
       <div className="field-grid">
         <div className="field-card">
           <div className="field-card-header">
-            <span className="field-label">
+            <label className="field-label" htmlFor="html-input">
               <span className="field-tag">HTML</span>
               Markup
-            </span>
+            </label>
             <label className="file-upload-label">
-              <Icon name="upload" size={12} />
-              Upload
+              <Icon name="upload" size={14} />
+              Upload<span className="visually-hidden"> HTML file</span>
               <input
                 type="file"
                 accept="text/html,.html"
@@ -88,6 +97,7 @@ const InterfaceInput = ({
             </label>
           </div>
           <textarea
+            id="html-input"
             className="code-input"
             value={htmlCode}
             onChange={(e) => onHtmlChange(e.target.value)}
@@ -98,13 +108,13 @@ const InterfaceInput = ({
 
         <div className="field-card">
           <div className="field-card-header">
-            <span className="field-label">
+            <label className="field-label" htmlFor="css-input">
               <span className="field-tag">CSS</span>
               Styles
-            </span>
+            </label>
             <label className="file-upload-label">
-              <Icon name="upload" size={12} />
-              Upload
+              <Icon name="upload" size={14} />
+              Upload<span className="visually-hidden"> CSS file</span>
               <input
                 type="file"
                 accept="text/css,.css"
@@ -114,6 +124,7 @@ const InterfaceInput = ({
             </label>
           </div>
           <textarea
+            id="css-input"
             className="code-input"
             value={cssCode}
             onChange={(e) => onCssChange(e.target.value)}
@@ -125,12 +136,13 @@ const InterfaceInput = ({
 
       <div className="field-card">
         <div className="field-card-header">
-          <span className="field-label">
+          <label className="field-label" htmlFor="dom-input">
             <span className="field-tag">DOM</span>
             Rendered markup
-          </span>
+          </label>
         </div>
         <textarea
+          id="dom-input"
           className="code-input"
           value={domContent}
           onChange={(e) => onDomChange(e.target.value)}
@@ -142,9 +154,10 @@ const InterfaceInput = ({
 
       <div className="field-card">
         <div className="field-card-header">
-          <span className="field-label">Product / page description</span>
+          <label className="field-label" htmlFor="description-input">Product / page description</label>
         </div>
         <textarea
+          id="description-input"
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
           placeholder="What is this page for, and who uses it?"
@@ -154,18 +167,19 @@ const InterfaceInput = ({
 
       <div className="analyze-action-row">
         <button
+          type="button"
           className="analyze-button"
           onClick={onAnalyze}
           disabled={isAnalyzing}
         >
           {isAnalyzing ? (
             <>
-              <span className="mini-spinner" />
+              <span className="mini-spinner" aria-hidden="true" />
               Analyzing…
             </>
           ) : (
             <>
-              <Icon name="sparkles" size={15} />
+              <Icon name="sparkles" size={18} />
               Analyze interface
             </>
           )}
