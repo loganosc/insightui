@@ -347,6 +347,7 @@ function App() {
         critiqueData={critiqueData}
         screenshot={screenshot}
         isLoading={isAnalyzing}
+        model={selectedModel}
       />
     </div>
   );

@@ -3,6 +3,8 @@ import axios from 'axios';
 const OLLAMA_API_BASE = (import.meta.env.VITE_OLLAMA_API_URL || 'http://localhost:11434').replace(/\/+$/, '');
 export const DEFAULT_MODEL = import.meta.env.VITE_DEFAULT_MODEL || 'gemma4:4b';
 const MAX_PROMPT_SECTION_CHARS = 20000;
+// Ollama defaults to a 4096-token window, which a screenshot plus code easily overflows
+const NUM_CTX = Number(import.meta.env.VITE_OLLAMA_NUM_CTX) || 16384;
 const CATEGORIES = ['usability', 'accessibility', 'visual_hierarchy', 'interaction_design', 'consistency'];
 const CATEGORY_KEYWORDS = {
   usability: ['usability', 'ux', 'user experience', 'friction', 'clarity'],
@@ -77,7 +79,7 @@ Analyze the provided interface inputs and provide feedback ONLY as a valid JSON 
   }
 
   const prompt = promptParts.join('\n\n');
-  const imagePayload = toOllamaImagePayload(screenshot);
+  const imagePayload = await prepareImagePayload(screenshot);
 
   const runGenerate = async (targetModel) => {
     const requestBody = {
@@ -85,7 +87,8 @@ Analyze the provided interface inputs and provide feedback ONLY as a valid JSON 
       prompt,
       system: systemPrompt,
       stream: false,
-      format: 'json'
+      format: 'json',
+      options: { num_ctx: NUM_CTX }
     };
 
     if (imagePayload) {
@@ -176,12 +179,13 @@ Do not return JSON.`;
     promptParts.push('Screenshot: Included as image attachment in this request.');
   }
 
-  const imagePayload = toOllamaImagePayload(screenshot);
+  const imagePayload = await prepareImagePayload(screenshot);
   const requestBody = {
     model,
     system: systemPrompt,
     prompt: promptParts.join('\n\n'),
-    stream: false
+    stream: false,
+    options: { num_ctx: NUM_CTX }
   };
   if (imagePayload) {
     requestBody.images = [imagePayload];
@@ -199,6 +203,38 @@ Do not return JSON.`;
     throw new Error(`Failed to answer follow-up question: ${getOllamaErrorMessage(error)}`);
   }
 };
+
+// Vision models bill by pixel area, so a 2x Retina screenshot costs ~4k tokens.
+// Capping the long edge at 1280px keeps UI text legible for ~1.5k tokens.
+const MAX_IMAGE_EDGE = 1280;
+
+const downscaleScreenshot = (dataUrl) =>
+  new Promise((resolve) => {
+    if (!dataUrl?.startsWith('data:image/')) {
+      resolve(dataUrl);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+      if (scale === 1) {
+        resolve(dataUrl);
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+
+const prepareImagePayload = async (screenshot) =>
+  toOllamaImagePayload(await downscaleScreenshot(screenshot));
 
 const toOllamaImagePayload = (screenshot) => {
   if (!screenshot || typeof screenshot !== 'string') return null;
@@ -425,12 +461,44 @@ export const checkOllamaHealth = async () => {
   }
 };
 
+const getModelCapabilities = async (name) => {
+  try {
+    const response = await axios.post(`${OLLAMA_API_BASE}/api/show`, { model: name });
+    return Array.isArray(response.data?.capabilities) ? response.data.capabilities : null;
+  } catch (_error) {
+    return null;
+  }
+};
+
+// Returns models that can generate text, each with `capabilities` (null if this Ollama
+// version doesn't report them). Image-generation models like flux are dropped.
 export const getAvailableModels = async () => {
   try {
     const response = await axios.get(`${OLLAMA_API_BASE}/api/tags`);
-    return response.data.models || [];
+    const models = response.data.models || [];
+    const withCapabilities = await Promise.all(
+      models.map(async (model) => ({
+        ...model,
+        capabilities: await getModelCapabilities(model.name)
+      }))
+    );
+    return withCapabilities.filter(
+      (model) => !model.capabilities || model.capabilities.includes('completion')
+    );
   } catch (error) {
     console.error('Error fetching models:', error);
     return [];
   }
+};
+
+const baseModelName = (name = '') => name.replace(/:latest$/, '');
+
+// Prefer the configured default (treating "name" and "name:latest" as the same),
+// then any vision-capable model, then whatever is first.
+export const pickDefaultModel = (models, preferred = DEFAULT_MODEL) => {
+  if (models.length === 0) return null;
+  const exact = models.find((m) => baseModelName(m.name) === baseModelName(preferred));
+  if (exact) return exact.name;
+  const vision = models.find((m) => m.capabilities?.includes('vision'));
+  return (vision || models[0]).name;
 };

@@ -3,7 +3,7 @@ import { generatePDFReport } from '../utils/pdfExport';
 import Icon from './Icon';
 import './BottomBar.css';
 
-const BottomBar = ({ critiqueData, screenshot, isLoading }) => {
+const BottomBar = ({ critiqueData, screenshot, isLoading, model }) => {
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState('');
 
@@ -16,7 +16,7 @@ const BottomBar = ({ critiqueData, screenshot, isLoading }) => {
     setExporting(true);
     setExportError('');
     try {
-      await generatePDFReport(critiqueData, screenshot, `insightui-critique-${Date.now()}.pdf`);
+      await generatePDFReport(critiqueData, screenshot, `insightui-critique-${Date.now()}.pdf`, { model });
     } catch (error) {
       setExportError(`PDF export failed: ${error.message}`);
     } finally {

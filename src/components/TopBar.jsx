@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAvailableModels } from '../utils/ollamaApi';
+import { getAvailableModels, pickDefaultModel } from '../utils/ollamaApi';
 import Icon from './Icon';
 import './TopBar.css';
 
@@ -11,15 +11,15 @@ const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleThem
     const fetchModels = async () => {
       try {
         const availableModels = await getAvailableModels();
-        const names = availableModels.map((m) => m.name);
-        setModels(names);
+        setModels(availableModels);
 
-        if (names.length > 0 && !names.includes(selectedModel)) {
-          onModelChange(names[0]);
+        if (!availableModels.some((m) => m.name === selectedModel)) {
+          const fallback = pickDefaultModel(availableModels, selectedModel);
+          if (fallback) onModelChange(fallback);
         }
       } catch (error) {
         console.error('Error fetching models:', error);
-        setModels(['gemma4:4b', 'qwen3-vl', 'llama3', 'mistral']); // Fallback defaults
+        setModels([]);
       } finally {
         setLoading(false);
       }
@@ -69,8 +69,9 @@ const TopBar = ({ selectedModel, onModelChange, isAnalyzing, theme, onToggleThem
               <option>Loading models...</option>
             ) : models.length > 0 ? (
               models.map((model) => (
-                <option key={model} value={model}>
-                  {model}
+                <option key={model.name} value={model.name}>
+                  {model.name}
+                  {model.capabilities && !model.capabilities.includes('vision') ? ' (text only)' : ''}
                 </option>
               ))
             ) : (
